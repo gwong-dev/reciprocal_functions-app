@@ -19,25 +19,19 @@
     
     <style>
         :root {
-            /* Meriden School Strathfield Color Palette */
             --meriden-navy: #002855;
             --meriden-gold: #DCAE32;
-            --meriden-gold-dark: #b88e1c; /* Darker for better web contrast */
+            --meriden-gold-dark: #b88e1c; 
             --page-bg: #f4f6f8;
             --card-border: #e2e8f0;
         }
 
         body { 
-            font-family: 'Open Sans', Tahoma, Geneva, Verdana, sans-serif; 
-            display: flex; flex-direction: column; align-items: center; 
-            background: var(--page-bg); margin: 0; padding: 40px 20px; color: #334155; 
+            font-family: 'Open Sans', sans-serif; display: flex; flex-direction: column; 
+            align-items: center; background: var(--page-bg); margin: 0; padding: 40px 20px; color: #334155; 
         }
         
-        h1, h2 { 
-            font-family: 'Lora', serif; 
-            color: var(--meriden-navy); 
-        }
-        
+        h1, h2 { font-family: 'Lora', serif; color: var(--meriden-navy); }
         h1 { margin-top: 0; margin-bottom: 30px; font-size: 2.4rem; letter-spacing: -0.5px; }
         
         #layout { display: flex; gap: 25px; max-width: 1050px; width: 100%; }
@@ -45,7 +39,7 @@
         .card { 
             background: white; padding: 25px; border-radius: 10px; 
             box-shadow: 0 4px 15px rgba(0, 40, 85, 0.05); border: 1px solid var(--card-border);
-            border-top: 5px solid var(--meriden-navy); /* Academic anchor line */
+            border-top: 5px solid var(--meriden-navy);
         }
         
         #plot-card { flex-grow: 1; display: flex; flex-direction: column; align-items: center; }
@@ -53,34 +47,44 @@
         
         h2 { margin-top: 0; font-size: 1.25rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
         
-        /* Premium Input Styling */
-        input { 
+        input[type="text"] { 
             width: 100%; padding: 12px 15px; border: 2px solid #cbd5e1; 
             border-radius: 6px; font-size: 1.1rem; outline: none; transition: all 0.2s; 
-            background: #f8fafc; font-family: monospace; box-sizing: border-box;
-            color: var(--meriden-navy);
+            background: #f8fafc; font-family: monospace; box-sizing: border-box; color: var(--meriden-navy);
         }
-        input:focus { border-color: var(--meriden-gold); background: #fff; box-shadow: 0 0 0 3px rgba(220, 174, 50, 0.2); }
+        input[type="text"]:focus { border-color: var(--meriden-gold); background: #fff; box-shadow: 0 0 0 3px rgba(220, 174, 50, 0.2); }
         
-        /* Preset Buttons */
+        .slider-container { width: 100%; margin-top: 20px; text-align: center; }
+        .slider-container label { font-size: 0.95rem; color: #64748b; font-weight: 600; display: block; margin-bottom: 10px;}
+        input[type="range"] { width: 90%; cursor: pointer; accent-color: var(--meriden-navy); }
+
         .presets { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
         .preset-btn {
             background: var(--page-bg); border: 1px solid #cbd5e1; padding: 6px 14px; border-radius: 20px;
-            font-size: 0.85rem; color: var(--meriden-navy); cursor: pointer; transition: all 0.2s;
-            font-family: 'Open Sans', sans-serif; font-weight: 600;
+            font-size: 0.85rem; color: var(--meriden-navy); cursor: pointer; transition: all 0.2s; font-weight: 600;
         }
-        .preset-btn:hover { background: var(--meriden-navy); color: white; border-color: var(--meriden-navy); }
+        .preset-btn:hover { background: var(--meriden-navy); color: white; }
 
-        /* Data Row Styling */
+        /* Download Button */
+        .download-btn {
+            margin-top: 20px; background: white; color: var(--meriden-navy);
+            border: 2px solid var(--meriden-navy); padding: 10px 20px; border-radius: 6px;
+            font-weight: 700; cursor: pointer; transition: all 0.3s; font-family: 'Open Sans', sans-serif;
+        }
+        .download-btn:hover { background: var(--meriden-navy); color: white; }
+
         .stat-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f1f5f9; align-items: center; }
-        .stat-row:last-child { border-bottom: none; }
         .val { font-family: monospace; font-weight: bold; font-size: 1.1rem; }
-        
         .f-color { color: var(--meriden-navy); } 
         .g-color { color: var(--meriden-gold-dark); } 
         
-        .hint { font-size: 0.9rem; color: #64748b; font-style: italic; margin-top: 15px; text-align: center; }
         #observations { font-size: 0.95rem; line-height: 1.5; color: #475569; min-height: 60px; }
+
+        /* GRAPH UPGRADES */
+        .function-plot .line-0, .function-plot .line-1 { stroke-width: 3.5px !important; }
+        .track-line { stroke: #94a3b8; stroke-dasharray: 4,4; stroke-width: 1.5px; }
+        .track-dot-f { fill: var(--meriden-navy); stroke: white; stroke-width: 2px; }
+        .track-dot-g { fill: var(--meriden-gold-dark); stroke: white; stroke-width: 2px; }
     </style>
 </head>
 <body>
@@ -90,18 +94,23 @@
     <div id="layout">
         <div id="plot-card" class="card">
             <div id="plot"></div>
-            <p class="hint">Move your mouse over the graph to see the relationship in real-time.</p>
+            
+            <div class="slider-container">
+                <label>Drag to explore mathematical relationships</label>
+                <input type="range" id="xSlider" min="-6" max="6" step="0.05" value="2" oninput="scrub(this.value)">
+            </div>
+
+            <button class="download-btn" onclick="downloadImage()">⬇ Export Graph for Notes</button>
         </div>
 
         <div id="sidebar">
             <div class="card">
                 <h2>Define $f(x)$</h2>
-                <input type="text" id="funcInput" value="x - 2" placeholder="e.g., x^2 - 4" oninput="update()">
+                <input type="text" id="funcInput" value="x - 2" oninput="updatePlot()">
                 <div class="presets">
                     <button class="preset-btn" onclick="setFunction('x - 2')">Linear</button>
                     <button class="preset-btn" onclick="setFunction('x^2 - 4')">Quadratic</button>
                     <button class="preset-btn" onclick="setFunction('sin(x)')">Wave</button>
-                    <button class="preset-btn" onclick="setFunction('2^x')">Exponential</button>
                 </div>
             </div>
 
@@ -114,93 +123,136 @@
 
             <div class="card">
                 <h2>Key Observations</h2>
-                <div id="observations">
-                    Hover over the graph to analyze...
-                </div>
+                <div id="observations">...</div>
             </div>
         </div>
     </div>
 
     <script>
-        const katexConfig = {
-            delimiters: [
-                {left: "$$", right: "$$", display: true},
-                {left: "$", right: "$", display: false}
-            ]
-        };
+        const katexConfig = { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}] };
+        let currentPlotInstance;
 
         document.addEventListener("DOMContentLoaded", function() {
             renderMathInElement(document.body, katexConfig);
+            updatePlot();
         });
 
         function setFunction(fn) {
             document.getElementById('funcInput').value = fn;
-            update();
+            updatePlot();
         }
 
-        function update() {
+        function updatePlot() {
             const f_text = document.getElementById('funcInput').value;
             const g_text = `1/(${f_text})`;
 
             try {
-                const instance = functionPlot({
+                currentPlotInstance = functionPlot({
                     target: '#plot',
                     width: 600,
-                    height: 450,
+                    height: 420,
                     grid: true,
                     disableZoom: true,
                     xAxis: { domain: [-6, 6] },
                     yAxis: { domain: [-6, 6] },
-                    annotations: [
-                        { y: 1, text: 'y = 1' },
-                        { y: -1, text: 'y = -1' }
-                    ],
+                    annotations: [{ y: 1, text: 'y = 1' }, { y: -1, text: 'y = -1' }],
                     data: [
-                        { fn: f_text, color: '#002855', graphType: 'polyline' }, // Meriden Navy
-                        { fn: g_text, color: '#b88e1c', graphType: 'polyline' }  // Meriden Gold
+                        { fn: f_text, color: '#002855', graphType: 'polyline' }, 
+                        { fn: g_text, color: '#b88e1c', graphType: 'polyline' }  
                     ]
                 });
 
-                instance.on('mousemove', (coords) => {
-                    const x = coords.x.toFixed(2);
-                    try {
-                        const f_val = math.evaluate(f_text, { x: coords.x });
-                        const g_val = 1 / f_val;
-
-                        document.getElementById('val-x').innerText = x;
-                        document.getElementById('val-f').innerText = f_val.toFixed(3);
-                        
-                        if (Math.abs(g_val) > 100) {
-                            document.getElementById('val-g').innerText = "± Infinity";
-                        } else {
-                            document.getElementById('val-g').innerText = g_val.toFixed(3);
-                        }
-
-                        updateObservations(f_val, g_val);
-                    } catch (e) {}
+                currentPlotInstance.on('mousemove', (coords) => {
+                    const clampedX = Math.max(-6, Math.min(6, coords.x));
+                    document.getElementById('xSlider').value = clampedX;
+                    scrub(clampedX);
                 });
 
+                scrub(document.getElementById('xSlider').value);
             } catch (err) {}
+        }
+
+        function scrub(xValue) {
+            const x = parseFloat(xValue);
+            const f_text = document.getElementById('funcInput').value;
+            try {
+                const f_val = math.evaluate(f_text, { x: x });
+                const g_val = 1 / f_val;
+                document.getElementById('val-x').innerText = x.toFixed(2);
+                document.getElementById('val-f').innerText = f_val.toFixed(3);
+                document.getElementById('val-g').innerText = Math.abs(g_val) > 100 ? "± Infinity" : g_val.toFixed(3);
+                drawTracker(x, f_val, g_val);
+                updateObservations(f_val, g_val);
+            } catch (e) {}
+        }
+
+        function drawTracker(x, f_val, g_val) {
+            if (!currentPlotInstance) return;
+            const svg = d3.select('#plot svg .content');
+            const xScale = currentPlotInstance.meta.xScale;
+            const yScale = currentPlotInstance.meta.yScale;
+            const px = xScale(x);
+            const pyF = yScale(f_val);
+            const pyG = Math.abs(g_val) > 100 ? -999 : yScale(g_val);
+
+            let tracker = svg.select('.custom-tracker');
+            if (tracker.empty()) {
+                tracker = svg.append('g').attr('class', 'custom-tracker');
+                tracker.append('line').attr('class', 'track-line');
+                tracker.append('circle').attr('class', 'track-dot-f').attr('r', 6);
+                tracker.append('circle').attr('class', 'track-dot-g').attr('r', 6);
+            }
+
+            tracker.select('.track-line').attr('x1', px).attr('x2', px).attr('y1', 0).attr('y2', currentPlotInstance.meta.height);
+            tracker.select('.track-dot-f').attr('cx', px).attr('cy', pyF);
+            tracker.select('.track-dot-g').attr('cx', px).attr('cy', pyG);
         }
 
         function updateObservations(f, g) {
             let msg = "";
-            if (Math.abs(f) < 0.1) {
-                msg = "⚠️ <b>Asymptote Alert:</b> $f(x)$ is near zero, so $g(x)$ is shooting toward infinity.";
-            } else if (Math.abs(Math.abs(f) - 1) < 0.05) {
-                msg = "✨ <b>Invariant Point:</b> $f(x)$ is $1$ (or $-1$), so it equals its own reciprocal!";
-            } else if (Math.abs(f) > 4) {
-                msg = "📉 <b>Decay:</b> As $f(x)$ grows larger, $g(x)$ gets closer and closer to the x-axis ($y=0$).";
-            } else {
-                msg = "Move near $y=0$ or $y=1$ to see special behaviors.";
-            }
-            
+            if (Math.abs(f) < 0.1) msg = "⚠️ <b>Asymptote Alert:</b> $f(x)$ is near zero, causing $g(x)$ to explode.";
+            else if (Math.abs(Math.abs(f) - 1) < 0.05) msg = "✨ <b>Invariant Point:</b> At $y = \\pm 1$, the function meets its reciprocal.";
+            else if (Math.abs(f) > 4) msg = "📉 <b>Decay:</b> As $f(x)$ grows, $g(x)$ approaches the asymptote $y=0$.";
+            else msg = "Move toward $y=0$ or $y=1$ to see key properties.";
             const obsEl = document.getElementById('observations');
             obsEl.innerHTML = msg;
             renderMathInElement(obsEl, katexConfig);
         }
 
-        update();
+        // IMAGE EXPORT ENGINE
+        function downloadImage() {
+            const svgElement = document.querySelector('#plot svg');
+            const serializer = new XMLSerializer();
+            let source = serializer.serializeToString(svgElement);
+
+            // Add namespaces and styles to make the SVG self-contained
+            if(!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)){
+                source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+            }
+            source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+
+            const canvas = document.createElement("canvas");
+            const context = canvas.getContext("2d");
+            canvas.width = 600;
+            canvas.height = 420;
+
+            const img = new Image();
+            const url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(source);
+
+            img.onload = function() {
+                context.fillStyle = "white"; // Solid background for PNG
+                context.fillRect(0, 0, canvas.width, canvas.height);
+                context.drawImage(img, 0, 0);
+                const pngUrl = canvas.toDataURL("image/png");
+                const downloadLink = document.createElement("a");
+                downloadLink.href = pngUrl;
+                downloadLink.download = "Meriden_Math_Export.png";
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+            };
+            img.src = url;
+        }
     </script>
 </body>
 </html>
