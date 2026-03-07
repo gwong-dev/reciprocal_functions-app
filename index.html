@@ -42,7 +42,7 @@
             border-top: 5px solid var(--meriden-navy);
         }
         
-        #plot-card { flex-grow: 1; display: flex; flex-direction: column; align-items: center; }
+        #plot-card { flex-grow: 1; display: flex; flex-direction: column; align-items: center; position: relative; }
         #sidebar { width: 340px; display: flex; flex-direction: column; gap: 20px; }
         
         h2 { margin-top: 0; font-size: 1.25rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
@@ -58,18 +58,17 @@
         .slider-container label { font-size: 0.95rem; color: #64748b; font-weight: 600; display: block; margin-bottom: 10px;}
         input[type="range"] { width: 90%; cursor: pointer; accent-color: var(--meriden-navy); }
 
-        .presets { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-        .preset-btn {
-            background: var(--page-bg); border: 1px solid #cbd5e1; padding: 6px 14px; border-radius: 20px;
+        .btn-group { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+        .secondary-btn {
+            background: var(--page-bg); border: 1px solid #cbd5e1; padding: 8px 14px; border-radius: 6px;
             font-size: 0.85rem; color: var(--meriden-navy); cursor: pointer; transition: all 0.2s; font-weight: 600;
         }
-        .preset-btn:hover { background: var(--meriden-navy); color: white; }
+        .secondary-btn:hover { background: var(--meriden-navy); color: white; }
 
-        /* Download Button */
         .download-btn {
-            margin-top: 20px; background: white; color: var(--meriden-navy);
+            margin-top: 15px; background: white; color: var(--meriden-navy);
             border: 2px solid var(--meriden-navy); padding: 10px 20px; border-radius: 6px;
-            font-weight: 700; cursor: pointer; transition: all 0.3s; font-family: 'Open Sans', sans-serif;
+            font-weight: 700; cursor: pointer; transition: all 0.3s; width: 100%;
         }
         .download-btn:hover { background: var(--meriden-navy); color: white; }
 
@@ -80,11 +79,13 @@
         
         #observations { font-size: 0.95rem; line-height: 1.5; color: #475569; min-height: 60px; }
 
-        /* GRAPH UPGRADES */
+        /* GRAPH STYLING */
         .function-plot .line-0, .function-plot .line-1 { stroke-width: 3.5px !important; }
         .track-line { stroke: #94a3b8; stroke-dasharray: 4,4; stroke-width: 1.5px; }
         .track-dot-f { fill: var(--meriden-navy); stroke: white; stroke-width: 2px; }
         .track-dot-g { fill: var(--meriden-gold-dark); stroke: white; stroke-width: 2px; }
+        
+        .nav-hint { font-size: 0.8rem; color: #94a3b8; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -93,32 +94,34 @@
 
     <div id="layout">
         <div id="plot-card" class="card">
-            <div id="plot"></div>
+            <div id="plot" style="cursor: move;"></div>
             
             <div class="slider-container">
-                <label>Drag to explore mathematical relationships</label>
-                <input type="range" id="xSlider" min="-6" max="6" step="0.05" value="2" oninput="scrub(this.value)">
+                <label>Scrub $x$ value</label>
+                <input type="range" id="xSlider" min="-20" max="20" step="0.1" value="2" oninput="scrub(this.value)">
+                <div class="nav-hint">Tip: Click and drag the graph background to pan the view</div>
             </div>
-
-            <button class="download-btn" onclick="downloadImage()">⬇ Export Graph for Notes</button>
         </div>
 
         <div id="sidebar">
             <div class="card">
-                <h2>Define $f(x)$</h2>
-                <input type="text" id="funcInput" value="x - 2" oninput="updatePlot()">
-                <div class="presets">
-                    <button class="preset-btn" onclick="setFunction('x - 2')">Linear</button>
-                    <button class="preset-btn" onclick="setFunction('x^2 - 4')">Quadratic</button>
-                    <button class="preset-btn" onclick="setFunction('sin(x)')">Wave</button>
+                <h2>Controls</h2>
+                <input type="text" id="funcInput" value="x - 2" placeholder="Function f(x)" oninput="updatePlot()">
+                
+                <div class="btn-group">
+                    <button class="secondary-btn" onclick="resetView()">🏠 Reset View</button>
+                    <button class="secondary-btn" onclick="setFunction('x^2 - 4')">Quadratic</button>
+                    <button class="secondary-btn" onclick="setFunction('sin(x)')">Wave</button>
                 </div>
+                
+                <button class="download-btn" onclick="downloadImage()">⬇ Export Graph</button>
             </div>
 
             <div class="card">
                 <h2>Live Analytics</h2>
-                <div class="stat-row"><span>$x$ value:</span> <span id="val-x" class="val">-</span></div>
+                <div class="stat-row"><span>$x$:</span> <span id="val-x" class="val">-</span></div>
                 <div class="stat-row"><span class="f-color">$f(x)$</span> <span id="val-f" class="val f-color">-</span></div>
-                <div class="stat-row"><span class="g-color">$g(x) = \frac{1}{f(x)}$</span> <span id="val-g" class="val g-color">-</span></div>
+                <div class="stat-row"><span class="g-color">$g(x)$</span> <span id="val-g" class="val g-color">-</span></div>
             </div>
 
             <div class="card">
@@ -142,6 +145,10 @@
             updatePlot();
         }
 
+        function resetView() {
+            updatePlot(); // Re-initializes with default domains
+        }
+
         function updatePlot() {
             const f_text = document.getElementById('funcInput').value;
             const g_text = `1/(${f_text})`;
@@ -152,7 +159,7 @@
                     width: 600,
                     height: 420,
                     grid: true,
-                    disableZoom: true,
+                    disableZoom: false, // Zooming enabled
                     xAxis: { domain: [-6, 6] },
                     yAxis: { domain: [-6, 6] },
                     annotations: [{ y: 1, text: 'y = 1' }, { y: -1, text: 'y = -1' }],
@@ -162,10 +169,9 @@
                     ]
                 });
 
-                currentPlotInstance.on('mousemove', (coords) => {
-                    const clampedX = Math.max(-6, Math.min(6, coords.x));
-                    document.getElementById('xSlider').value = clampedX;
-                    scrub(clampedX);
+                // Re-draw tracker whenever the user pans or zooms
+                currentPlotInstance.on('all', () => {
+                    scrub(document.getElementById('xSlider').value);
                 });
 
                 scrub(document.getElementById('xSlider').value);
@@ -180,7 +186,8 @@
                 const g_val = 1 / f_val;
                 document.getElementById('val-x').innerText = x.toFixed(2);
                 document.getElementById('val-f').innerText = f_val.toFixed(3);
-                document.getElementById('val-g').innerText = Math.abs(g_val) > 100 ? "± Infinity" : g_val.toFixed(3);
+                document.getElementById('val-g').innerText = Math.abs(g_val) > 100 ? "± Inf" : g_val.toFixed(3);
+                
                 drawTracker(x, f_val, g_val);
                 updateObservations(f_val, g_val);
             } catch (e) {}
@@ -191,6 +198,7 @@
             const svg = d3.select('#plot svg .content');
             const xScale = currentPlotInstance.meta.xScale;
             const yScale = currentPlotInstance.meta.yScale;
+            
             const px = xScale(x);
             const pyF = yScale(f_val);
             const pyG = Math.abs(g_val) > 100 ? -999 : yScale(g_val);
@@ -203,53 +211,42 @@
                 tracker.append('circle').attr('class', 'track-dot-g').attr('r', 6);
             }
 
-            tracker.select('.track-line').attr('x1', px).attr('x2', px).attr('y1', 0).attr('y2', currentPlotInstance.meta.height);
+            tracker.select('.track-line').attr('x1', px).attr('x2', px).attr('y1', -1000).attr('y2', 1000);
             tracker.select('.track-dot-f').attr('cx', px).attr('cy', pyF);
             tracker.select('.track-dot-g').attr('cx', px).attr('cy', pyG);
         }
 
         function updateObservations(f, g) {
             let msg = "";
-            if (Math.abs(f) < 0.1) msg = "⚠️ <b>Asymptote Alert:</b> $f(x)$ is near zero, causing $g(x)$ to explode.";
-            else if (Math.abs(Math.abs(f) - 1) < 0.05) msg = "✨ <b>Invariant Point:</b> At $y = \\pm 1$, the function meets its reciprocal.";
-            else if (Math.abs(f) > 4) msg = "📉 <b>Decay:</b> As $f(x)$ grows, $g(x)$ approaches the asymptote $y=0$.";
-            else msg = "Move toward $y=0$ or $y=1$ to see key properties.";
+            if (Math.abs(f) < 0.1) msg = "⚠️ <b>Asymptote:</b> $f(x)$ is near zero, $g(x) \\to \\infty$.";
+            else if (Math.abs(Math.abs(f) - 1) < 0.05) msg = "✨ <b>Invariant:</b> $f(x) = g(x)$ at $y = \\pm 1$.";
+            else if (Math.abs(f) > 5) msg = "📉 <b>Decay:</b> Large $f(x)$ means $g(x)$ is near zero.";
+            else msg = "Drag graph or slider to explore.";
+            
             const obsEl = document.getElementById('observations');
             obsEl.innerHTML = msg;
             renderMathInElement(obsEl, katexConfig);
         }
 
-        // IMAGE EXPORT ENGINE
         function downloadImage() {
             const svgElement = document.querySelector('#plot svg');
             const serializer = new XMLSerializer();
             let source = serializer.serializeToString(svgElement);
-
-            // Add namespaces and styles to make the SVG self-contained
-            if(!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)){
-                source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
-            }
             source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
-
             const canvas = document.createElement("canvas");
             const context = canvas.getContext("2d");
-            canvas.width = 600;
-            canvas.height = 420;
-
+            canvas.width = 600; canvas.height = 420;
             const img = new Image();
             const url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(source);
-
             img.onload = function() {
-                context.fillStyle = "white"; // Solid background for PNG
+                context.fillStyle = "white";
                 context.fillRect(0, 0, canvas.width, canvas.height);
                 context.drawImage(img, 0, 0);
                 const pngUrl = canvas.toDataURL("image/png");
                 const downloadLink = document.createElement("a");
                 downloadLink.href = pngUrl;
-                downloadLink.download = "Meriden_Math_Export.png";
-                document.body.appendChild(downloadLink);
+                downloadLink.download = "Meriden_Graph_Export.png";
                 downloadLink.click();
-                document.body.removeChild(downloadLink);
             };
             img.src = url;
         }
