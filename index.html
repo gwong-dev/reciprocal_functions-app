@@ -3,8 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reciprocal Function Explorer</title>
+    <title>Reciprocal Function Explorer - Meriden Edition</title>
     
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
@@ -14,49 +18,66 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
     
     <style>
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            display: flex; flex-direction: column; align-items: center; 
-            background: #f4f7f8; margin: 0; padding: 40px 20px; color: #334155; 
+        :root {
+            /* Meriden School Strathfield Color Palette */
+            --meriden-navy: #002855;
+            --meriden-gold: #DCAE32;
+            --meriden-gold-dark: #b88e1c; /* Darker for better web contrast */
+            --page-bg: #f4f6f8;
+            --card-border: #e2e8f0;
         }
-        h1 { margin-top: 0; margin-bottom: 30px; font-size: 2.2rem; color: #0f172a; }
+
+        body { 
+            font-family: 'Open Sans', Tahoma, Geneva, Verdana, sans-serif; 
+            display: flex; flex-direction: column; align-items: center; 
+            background: var(--page-bg); margin: 0; padding: 40px 20px; color: #334155; 
+        }
+        
+        h1, h2 { 
+            font-family: 'Lora', serif; 
+            color: var(--meriden-navy); 
+        }
+        
+        h1 { margin-top: 0; margin-bottom: 30px; font-size: 2.4rem; letter-spacing: -0.5px; }
         
         #layout { display: flex; gap: 25px; max-width: 1050px; width: 100%; }
         
         .card { 
-            background: white; padding: 25px; border-radius: 16px; 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid #e2e8f0;
+            background: white; padding: 25px; border-radius: 10px; 
+            box-shadow: 0 4px 15px rgba(0, 40, 85, 0.05); border: 1px solid var(--card-border);
+            border-top: 5px solid var(--meriden-navy); /* Academic anchor line */
         }
         
         #plot-card { flex-grow: 1; display: flex; flex-direction: column; align-items: center; }
         #sidebar { width: 340px; display: flex; flex-direction: column; gap: 20px; }
         
-        h2 { margin-top: 0; color: #334155; font-size: 1.15rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
+        h2 { margin-top: 0; font-size: 1.25rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
         
         /* Premium Input Styling */
         input { 
             width: 100%; padding: 12px 15px; border: 2px solid #cbd5e1; 
-            border-radius: 8px; font-size: 1.1rem; outline: none; transition: all 0.2s; 
+            border-radius: 6px; font-size: 1.1rem; outline: none; transition: all 0.2s; 
             background: #f8fafc; font-family: monospace; box-sizing: border-box;
+            color: var(--meriden-navy);
         }
-        input:focus { border-color: #3b82f6; background: #fff; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        input:focus { border-color: var(--meriden-gold); background: #fff; box-shadow: 0 0 0 3px rgba(220, 174, 50, 0.2); }
         
         /* Preset Buttons */
         .presets { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
         .preset-btn {
-            background: #e2e8f0; border: none; padding: 6px 12px; border-radius: 20px;
-            font-size: 0.85rem; color: #475569; cursor: pointer; transition: background 0.2s;
-            font-weight: 500;
+            background: var(--page-bg); border: 1px solid #cbd5e1; padding: 6px 14px; border-radius: 20px;
+            font-size: 0.85rem; color: var(--meriden-navy); cursor: pointer; transition: all 0.2s;
+            font-family: 'Open Sans', sans-serif; font-weight: 600;
         }
-        .preset-btn:hover { background: #cbd5e1; color: #0f172a; }
+        .preset-btn:hover { background: var(--meriden-navy); color: white; border-color: var(--meriden-navy); }
 
         /* Data Row Styling */
         .stat-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f1f5f9; align-items: center; }
         .stat-row:last-child { border-bottom: none; }
         .val { font-family: monospace; font-weight: bold; font-size: 1.1rem; }
         
-        .f-color { color: #3b82f6; } /* Crisp Blue */
-        .g-color { color: #ef4444; } /* Crisp Red */
+        .f-color { color: var(--meriden-navy); } 
+        .g-color { color: var(--meriden-gold-dark); } 
         
         .hint { font-size: 0.9rem; color: #64748b; font-style: italic; margin-top: 15px; text-align: center; }
         #observations { font-size: 0.95rem; line-height: 1.5; color: #475569; min-height: 60px; }
@@ -101,7 +122,6 @@
     </div>
 
     <script>
-        // Configuration for KaTeX auto-rendering
         const katexConfig = {
             delimiters: [
                 {left: "$$", right: "$$", display: true},
@@ -109,7 +129,6 @@
             ]
         };
 
-        // Render math on initial load
         document.addEventListener("DOMContentLoaded", function() {
             renderMathInElement(document.body, katexConfig);
         });
@@ -137,8 +156,8 @@
                         { y: -1, text: 'y = -1' }
                     ],
                     data: [
-                        { fn: f_text, color: '#3b82f6', graphType: 'polyline' },
-                        { fn: g_text, color: '#ef4444', graphType: 'polyline' }
+                        { fn: f_text, color: '#002855', graphType: 'polyline' }, // Meriden Navy
+                        { fn: g_text, color: '#b88e1c', graphType: 'polyline' }  // Meriden Gold
                     ]
                 });
 
@@ -161,9 +180,7 @@
                     } catch (e) {}
                 });
 
-            } catch (err) {
-                // Ignore parsing errors while user is typing
-            }
+            } catch (err) {}
         }
 
         function updateObservations(f, g) {
@@ -180,12 +197,9 @@
             
             const obsEl = document.getElementById('observations');
             obsEl.innerHTML = msg;
-            
-            // Re-render KaTeX math inside the observations box since we injected new text
             renderMathInElement(obsEl, katexConfig);
         }
 
-        // Initial render
         update();
     </script>
 </body>
