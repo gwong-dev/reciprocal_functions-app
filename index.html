@@ -32,7 +32,7 @@
         }
         
         h1, h2 { font-family: 'Lora', serif; color: var(--meriden-navy); }
-        h1 { margin-top: 0; margin-bottom: 30px; font-size: 2.4rem; letter-spacing: -0.5px; }
+        h1 { margin-top: 0; margin-bottom: 30px; font-size: 2.4rem; letter-spacing: -0.5px; text-align: center;}
         
         #layout { display: flex; gap: 25px; max-width: 1050px; width: 100%; }
         
@@ -50,7 +50,7 @@
         }
 
         #plot-card { flex-grow: 1; display: flex; flex-direction: column; align-items: center; }
-        #sidebar { width: 340px; display: flex; flex-direction: column; gap: 20px; }
+        #sidebar { width: 340px; display: flex; flex-direction: column; gap: 20px; flex-shrink: 0; }
         
         h2 { margin-top: 0; font-size: 1.25rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
         
@@ -61,28 +61,45 @@
         }
         input[type="text"]:focus { border-color: var(--meriden-gold); background: #fff; }
         
+        /* Textbook Dropdown Styling */
+        .example-dropdown {
+            width: 100%; padding: 10px 15px; margin-top: 15px; border: 2px solid var(--meriden-navy);
+            border-radius: 6px; font-size: 0.95rem; font-family: 'Open Sans', sans-serif;
+            color: var(--meriden-navy); background-color: white; cursor: pointer; font-weight: 600;
+        }
+        .example-dropdown:focus { outline: none; box-shadow: 0 0 0 3px rgba(0, 40, 85, 0.15); }
+
         .slider-container { width: 100%; margin-top: 20px; text-align: center; }
         .slider-container label { font-size: 0.95rem; color: #64748b; font-weight: 600; display: block; margin-bottom: 10px;}
         input[type="range"] { width: 90%; cursor: pointer; accent-color: var(--meriden-navy); }
 
-        .btn-group { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+        .btn-group { display: flex; gap: 8px; margin-top: 15px; flex-wrap: wrap; justify-content: space-between;}
         .secondary-btn {
-            background: var(--page-bg); border: 1px solid #cbd5e1; padding: 8px 14px; border-radius: 6px;
+            flex-grow: 1; background: var(--page-bg); border: 1px solid #cbd5e1; padding: 8px 14px; border-radius: 6px;
             font-size: 0.85rem; color: var(--meriden-navy); cursor: pointer; transition: all 0.2s; font-weight: 600;
         }
-        .secondary-btn:hover { background: var(--meriden-navy); color: white; }
+        .secondary-btn:hover { background: var(--meriden-navy); color: white; border-color: var(--meriden-navy); }
+
+        .download-btn {
+            margin-top: 15px; background: white; color: var(--meriden-navy); border: 2px solid var(--meriden-navy); 
+            padding: 10px 20px; border-radius: 6px; font-weight: 700; cursor: pointer; transition: all 0.3s; width: 100%;
+        }
+        .download-btn:hover { background: var(--meriden-navy); color: white; }
 
         .stat-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f1f5f9; align-items: center; }
+        .stat-row:last-child { border-bottom: none; }
         .val { font-family: monospace; font-weight: bold; font-size: 1.1rem; }
         .f-color { color: var(--meriden-navy); } 
         .g-color { color: var(--meriden-gold-dark); } 
         
-        #observations { font-size: 0.95rem; line-height: 1.5; color: #475569; min-height: 60px; }
+        #observations { font-size: 0.95rem; line-height: 1.5; color: #475569; min-height: 80px; }
+        .textbook-tip { background: #f0f4f8; border-left: 4px solid var(--meriden-gold); padding: 10px; margin-bottom: 12px; font-size: 0.9rem; border-radius: 0 4px 4px 0;}
 
         .track-line { stroke: #94a3b8; stroke-dasharray: 4,4; stroke-width: 1.5px; }
         .track-dot-f { fill: var(--meriden-navy); stroke: white; stroke-width: 2px; }
         .track-dot-g { fill: var(--meriden-gold-dark); stroke: white; stroke-width: 2px; }
         .function-plot .line-0, .function-plot .line-1 { stroke-width: 3.5px !important; }
+        .nav-hint { font-size: 0.8rem; color: #94a3b8; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -94,18 +111,28 @@
             <div id="plot" style="cursor: move;"></div>
             
             <div class="slider-container">
-                <label>Precision Scrubber (Use Arrow Keys for Fine-Tune)</label>
+                <label>Precision Scrubber (Click & Use Arrow Keys to Fine-Tune)</label>
                 <input type="range" id="xSlider" min="-15" max="15" step="0.01" value="2" oninput="scrub(this.value)">
+                <div class="nav-hint">Tip: Click and drag the graph background to pan the view.</div>
             </div>
         </div>
 
         <div id="sidebar">
             <div class="card" id="inputCard">
                 <h2>Define $f(x)$</h2>
-                <input type="text" id="funcInput" value="x - 2" oninput="updatePlot()">
+                <input type="text" id="funcInput" value="x - 2" oninput="userTypedFunction()">
+                
+                <select class="example-dropdown" id="textbookSelect" onchange="loadTextbookExample(this.value)">
+                    <option value="">📚 Load Textbook Example...</option>
+                    <option value="2^x">Ex 13: Horizontal Asymptote</option>
+                    <option value="x - 2">Ex 14: Vertical Asymptote</option>
+                    <option value="(2/21)*(x^3 - 16*x)">Ex 15a: Cubic from Graph</option>
+                    <option value="2*tanh(x)">Ex 15b: Bounded Asymptotes</option>
+                </select>
+
                 <div class="btn-group">
                     <button class="secondary-btn" onclick="resetView()">🏠 Reset View</button>
-                    <button class="secondary-btn" onclick="setFunction('x^2 - 4')">Quadratic</button>
+                    <button class="download-btn" style="margin-top: 0;" onclick="downloadImage()">⬇ Export Graph</button>
                 </div>
             </div>
 
@@ -113,11 +140,11 @@
                 <h2>Live Analytics</h2>
                 <div class="stat-row"><span>$x$ value:</span> <span id="val-x" class="val">-</span></div>
                 <div class="stat-row"><span class="f-color">$f(x)$</span> <span id="val-f" class="val f-color">-</span></div>
-                <div class="stat-row"><span class="g-color">$g(x)$</span> <span id="val-g" class="val g-color">-</span></div>
+                <div class="stat-row"><span class="g-color">$g(x) = \frac{1}{f(x)}$</span> <span id="val-g" class="val g-color">-</span></div>
             </div>
 
             <div class="card">
-                <h2>Observations</h2>
+                <h2>Key Observations</h2>
                 <div id="observations">...</div>
             </div>
         </div>
@@ -133,8 +160,16 @@
             updatePlot();
         });
 
-        function setFunction(fn) {
-            document.getElementById('funcInput').value = fn;
+        function userTypedFunction() {
+            // Reset dropdown if user types manually
+            document.getElementById('textbookSelect').value = "";
+            updatePlot();
+        }
+
+        function loadTextbookExample(equation) {
+            if (!equation) return; 
+            document.getElementById('funcInput').value = equation;
+            document.getElementById('xSlider').value = 0; // Center the slider
             updatePlot();
         }
 
@@ -143,16 +178,13 @@
         // Find where f(x) = 1 or -1 to create "Snap" targets
         function calculateInvariants(f_text) {
             invariantPoints = [];
-            // Sample range to find potential snap points
             for (let x = -15; x <= 15; x += 0.05) {
                 try {
                     let y1 = math.evaluate(f_text, { x: x });
                     let y2 = math.evaluate(f_text, { x: x + 0.05 });
-                    
-                    // If function crosses y=1 or y=-1 in this interval
                     if ((y1 < 1 && y2 > 1) || (y1 > 1 && y2 < 1) || 
                         (y1 < -1 && y2 > -1) || (y1 > -1 && y2 < -1)) {
-                        invariantPoints.push(x + 0.025); // Store the approximate x
+                        invariantPoints.push(x + 0.025); 
                     }
                 } catch(e) {}
             }
@@ -165,7 +197,7 @@
             try {
                 currentPlotInstance = functionPlot({
                     target: '#plot',
-                    width: 600, height: 420, grid: true,
+                    width: 600, height: 420, grid: true, disableZoom: false,
                     xAxis: { domain: [-6, 6] },
                     yAxis: { domain: [-6, 6] },
                     annotations: [{ y: 1, text: 'y=1' }, { y: -1, text: 'y=-1' }],
@@ -189,11 +221,11 @@
             const analyticsCard = document.getElementById('analyticsCard');
             let isSnapped = false;
 
-            // --- THE MAGNETIC SNAP ---
+            // Magnetic Snap Logic
             const snapRadius = 0.15;
             for (let snapX of invariantPoints) {
                 if (Math.abs(x - snapX) < snapRadius) {
-                    x = snapX; // Snap the value
+                    x = snapX;
                     isSnapped = true;
                     break;
                 }
@@ -211,7 +243,7 @@
                 document.getElementById('val-g').innerText = Math.abs(g_val) > 100 ? "± Inf" : g_val.toFixed(3);
                 
                 drawTracker(x, f_val, g_val);
-                updateObservations(f_val, isSnapped);
+                updateObservations(f_text, f_val, isSnapped);
             } catch (e) {}
         }
 
@@ -237,15 +269,63 @@
             tracker.select('.track-dot-g').attr('cx', px).attr('cy', pyG);
         }
 
-        function updateObservations(f, snapped) {
+        function updateObservations(f_text, f_val, snapped) {
             let msg = "";
-            if (snapped) msg = "✨ <b>Invariant Point Found!</b> $f(x)$ is exactly $1$ (or $-1$), so the reciprocal $g(x)$ is identical.";
-            else if (Math.abs(f) < 0.2) msg = "⚠️ <b>Asymptote:</b> $f(x)$ is near zero, causing $g(x)$ to accelerate toward infinity.";
-            else msg = "Scrub the slider to find where the Navy and Gold lines meet.";
+            let staticTip = "";
+            
+            // Check for specific Textbook scenarios to inject custom static hints
+            const cleanText = f_text.replace(/\s+/g, ''); // Remove spaces for comparison
+            if (cleanText === "2^x") {
+                staticTip = `<div class="textbook-tip"><b>Ex 13 Tip:</b> As $x \\to -\\infty$, $f(x) \\to 0^+$, which forces $g(x) \\to \\infty$. Because $2^x$ is never negative, $g(x)$ is always positive!</div>`;
+            } else if (cleanText === "x-2") {
+                staticTip = `<div class="textbook-tip"><b>Ex 14 Tip:</b> $f(x)$ crosses the x-axis at $x=2$. This is exactly where $g(x)$ becomes undefined, creating a vertical asymptote.</div>`;
+            } else if (cleanText === "(2/21)*(x^3-16*x)") {
+                staticTip = `<div class="textbook-tip"><b>Ex 15a Tip:</b> The 3 roots of the cubic curve create 3 separate vertical asymptotes. Notice how the local maximum of $f(x)$ at $y=2$ becomes a local minimum for $g(x)$ at $y=0.5$.</div>`;
+            } else if (cleanText === "2*tanh(x)") {
+                staticTip = `<div class="textbook-tip"><b>Ex 15b Tip:</b> $f(x)$ is bounded by horizontal asymptotes at $y=\\pm 2$. Therefore, its reciprocal $g(x)$ is bounded by horizontal asymptotes at $y=\\pm 0.5$.</div>`;
+            }
+
+            // Dynamic live feedback
+            if (snapped) msg = "✨ <b>Invariant Point Found!</b> $f(x)$ is exactly $1$ (or $-1$), so the reciprocal $g(x)$ intersects it perfectly.";
+            else if (Math.abs(f_val) < 0.2) msg = "⚠️ <b>Asymptote Approaching:</b> $f(x)$ is nearing zero, causing $g(x)$ to accelerate toward infinity.";
+            else msg = "Scrub the slider to explore the mathematical relationship.";
             
             const obsEl = document.getElementById('observations');
-            obsEl.innerHTML = msg;
+            obsEl.innerHTML = staticTip + msg;
             renderMathInElement(obsEl, katexConfig);
+        }
+
+        // IMAGE EXPORT ENGINE
+        function downloadImage() {
+            const svgElement = document.querySelector('#plot svg');
+            const serializer = new XMLSerializer();
+            let source = serializer.serializeToString(svgElement);
+            if(!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)){
+                source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+            }
+            source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+
+            const canvas = document.createElement("canvas");
+            const context = canvas.getContext("2d");
+            canvas.width = 600;
+            canvas.height = 420;
+
+            const img = new Image();
+            const url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(source);
+
+            img.onload = function() {
+                context.fillStyle = "white"; 
+                context.fillRect(0, 0, canvas.width, canvas.height);
+                context.drawImage(img, 0, 0);
+                const pngUrl = canvas.toDataURL("image/png");
+                const downloadLink = document.createElement("a");
+                downloadLink.href = pngUrl;
+                downloadLink.download = "Meriden_Math_Export.png";
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+            };
+            img.src = url;
         }
     </script>
 </body>
